@@ -64,3 +64,67 @@ def _tokenize(expression: str) -> list[tuple[str, str]]:
     return tokens
 
 
+def _parse(tokens: list[tuple[str, str]]):
+    pos = 0
+
+    def peek() -> tuple[str, str]:
+        return tokens[pos]
+
+    def consume(expected_type: str | None = None, expected_value: str | None = None):
+        nonlocal pos
+        token = tokens[pos]
+        if expected_type is not None and token[0] != expected_type:
+            raise ValueError("Unexpected token")
+        if expected_value is not None and token[1] != expected_value:
+            raise ValueError("Unexpected token")
+        pos += 1
+        return token
+
+    def parse_expression():
+        node = parse_term()
+        while True:
+            tk_type, tk_val = peek()
+            if tk_type == "OP" and tk_val in "+-":
+                consume("OP", tk_val)
+                right = parse_term()
+                node = ("bin", tk_val, node, right)
+            else:
+                return node
+
+    def parse_term():
+        node = parse_factor()
+        while True:
+            tk_type, tk_val = peek()
+            if tk_type == "OP" and tk_val in "*/":
+                consume("OP", tk_val)
+                right = parse_factor()
+                node = ("bin", tk_val, node, right)
+            elif tk_type in {"NUM", "LPAREN"}:
+                right = parse_factor()
+                node = ("bin", "*", node, right)
+            else:
+                return node
+
+    def parse_factor():
+        tk_type, tk_val = peek()
+        if tk_type == "OP" and tk_val == "-":
+            consume("OP", "-")
+            return ("neg", parse_factor())
+        if tk_type == "OP" and tk_val == "+":
+            raise ValueError("Unary plus is not supported")
+        if tk_type == "NUM":
+            _, lexeme = consume("NUM")
+            return ("num", float(lexeme))
+        if tk_type == "LPAREN":
+            consume("LPAREN", "(")
+            node = parse_expression()
+            consume("RPAREN", ")")
+            return node
+        raise ValueError("Unexpected token")
+
+    root = parse_expression()
+    if peek()[0] != "END":
+        raise ValueError("Trailing tokens")
+    return root
+
+
