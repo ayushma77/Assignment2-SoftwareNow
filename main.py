@@ -16,7 +16,6 @@ def run_encryption():
     encrypt_file(shift1, shift2)
     decrypt_file(shift1, shift2)
 
-    # WHY: verify ensures correctness before moving on
     if verify():
         print("Decryption successful!")
     else:
@@ -26,7 +25,6 @@ def run_encryption():
 def run_parser():
     """
     Controls expression parsing.
-    WHY: Separates logic for readability and testing.
     """
 
     print("\n=== Expression Parser ===")
@@ -55,7 +53,6 @@ def run_parser():
 def main():
     """
     Entry point of program.
-    WHY: Keeps execution organized and easy to expand.
     """
 
     run_encryption()

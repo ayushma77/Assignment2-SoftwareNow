@@ -13,6 +13,10 @@ def tokenize(expr):
     # Regex extracts numbers and operators
     tokens = re.findall(r'\d+|[()+\-*/]', expr)
 
+    # WHY: If nothing valid found → invalid expression
+    if not tokens:
+        return "ERROR"
+
     result = []
 
     for t in tokens:
@@ -29,7 +33,6 @@ def tokenize(expr):
             result.append(("RPAREN", t))
 
         else:
-            # WHY: invalid character → immediate error
             return "ERROR"
 
     result.append(("END", None))  # WHY: signals end of input
@@ -48,27 +51,24 @@ class Parser:
 
     def __init__(self, tokens):
         self.tokens = tokens
-        self.pos = 0  # WHY: track current position
+        self.pos = 0
 
     def current(self):
         return self.tokens[self.pos]
 
     def eat(self):
-        # WHY: move to next token after processing current
         self.pos += 1
 
     def factor(self):
         """
         Handles numbers, parentheses, and unary minus.
-        WHY: These are the smallest units in expressions.
         """
 
         token = self.current()
 
-        # Handle negative numbers (e.g., -5 or --5)
         if token[0] == "OP" and token[1] == "-":
             self.eat()
-            return ("neg", self.factor())  # WHY: recursive for multiple negatives
+            return ("neg", self.factor())
 
         elif token[0] == "NUM":
             self.eat()
@@ -78,20 +78,15 @@ class Parser:
             self.eat()
             node = self.expr()
 
-            # WHY: ensure closing bracket exists
             if self.current()[0] == "RPAREN":
                 self.eat()
+                return node
 
-            return node
+            return "ERROR"
 
         return "ERROR"
 
     def term(self):
-        """
-        Handles * and /
-        WHY: Higher precedence than + and -
-        """
-
         node = self.factor()
 
         while self.current()[0] == "OP" and self.current()[1] in ("*", "/"):
@@ -102,11 +97,6 @@ class Parser:
         return node
 
     def expr(self):
-        """
-        Handles + and -
-        WHY: Lowest precedence, so evaluated last
-        """
-
         node = self.term()
 
         while self.current()[0] == "OP" and self.current()[1] in ("+", "-"):
@@ -124,7 +114,6 @@ class Parser:
 def evaluate(node):
     """
     Evaluate parse tree.
-    WHY: Convert structure into final numeric result.
     """
 
     if isinstance(node, int):
@@ -134,12 +123,11 @@ def evaluate(node):
         return "ERROR"
 
     if node[0] == "neg":
-        return -evaluate(node[1])  # WHY: apply unary minus
+        return -evaluate(node[1])
 
     left = evaluate(node[1])
     right = evaluate(node[2])
 
-    # WHY: propagate errors early
     if left == "ERROR" or right == "ERROR":
         return "ERROR"
 
@@ -150,7 +138,6 @@ def evaluate(node):
     elif node[0] == "*":
         return left * right
     elif node[0] == "/":
-        # WHY: prevent runtime crash (division by zero)
         if right == 0:
             return "ERROR"
         return left / right
@@ -159,7 +146,6 @@ def evaluate(node):
 def print_tree(node):
     """
     Convert tree → readable format.
-    WHY: Required for assignment output.
     """
 
     if isinstance(node, int):

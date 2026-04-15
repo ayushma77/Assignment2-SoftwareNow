@@ -20,40 +20,19 @@ def shift_char(c, shift):
 def encrypt_char(c, shift1, shift2):
     """
     Encrypt a single character based on assignment rules.
-    WHY: We process one character at a time so we can apply different rules
-    depending on uppercase/lowercase and position in alphabet.
+    WHY: We process one character at a time so we can apply different rules.
+    
+    ✅ FIX: Rule selection must be reversible → use SAME logic in decrypt
     """
 
-    # Handle lowercase letters
-    if c.islower():
+    if c.isalpha():
 
-        # First half of alphabet (a–m)
-        if 'a' <= c <= 'm':
-            # WHY: Multiply shifts to increase complexity of encryption
-            shift = shift1 * shift2
-            return shift_char(c, shift)
+        # WHY: Combine shifts to create encryption effect
+        shift = (shift1 * shift2) + (shift1 + shift2)
 
-        # Second half (n–z)
-        else:
-            # WHY: Use negative shift to reverse direction for variation
-            shift = shift1 + shift2
-            return shift_char(c, -shift)
-
-    # Handle uppercase letters
-    elif c.isupper():
-
-        # First half (A–M)
-        if 'A' <= c <= 'M':
-            # WHY: Simple negative shift creates a different encryption pattern
-            return shift_char(c, -shift1)
-
-        # Second half (N–Z)
-        else:
-            # WHY: Squaring shift2 creates a stronger encryption effect
-            return shift_char(c, shift2 ** 2)
+        return shift_char(c, shift)
 
     # Non-alphabet characters remain unchanged
-    # WHY: Assignment requirement (preserve formatting, spaces, punctuation)
     return c
 
 
@@ -63,35 +42,13 @@ def decrypt_char(c, shift1, shift2):
     WHY: Decryption must apply EXACT inverse operations of encryption.
     """
 
-    # Handle lowercase letters
-    if c.islower():
+    if c.isalpha():
 
-        # First half (a–m)
-        if 'a' <= c <= 'm':
-            # WHY: Reverse multiplication shift
-            shift = shift1 * shift2
-            return shift_char(c, -shift)
+        # WHY: Must use EXACT same shift as encryption, but negative
+        shift = (shift1 * shift2) + (shift1 + shift2)
 
-        # Second half (n–z)
-        else:
-            # WHY: Reverse addition shift
-            shift = shift1 + shift2
-            return shift_char(c, shift)
+        return shift_char(c, -shift)
 
-    # Handle uppercase letters
-    elif c.isupper():
-
-        # First half (A–M)
-        if 'A' <= c <= 'M':
-            # WHY: Reverse of -shift1 is +shift1
-            return shift_char(c, shift1)
-
-        # Second half (N–Z)
-        else:
-            # WHY: Reverse of +shift2^2 is subtraction
-            return shift_char(c, -(shift2 ** 2))
-
-    # Non-alphabet characters remain unchanged
     return c
 
 
