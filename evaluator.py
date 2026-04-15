@@ -128,3 +128,90 @@ def _parse(tokens: list[tuple[str, str]]):
     return root
 
 
+def _tree_to_string(node) -> str:
+    kind = node[0]
+    if kind == "num":
+        return _format_number(node[1])
+    if kind == "neg":
+        return f"(neg {_tree_to_string(node[1])})"
+    _, op, left, right = node
+    return f"({op} {_tree_to_string(left)} {_tree_to_string(right)})"
+
+
+def _evaluate(node) -> float:
+    kind = node[0]
+    if kind == "num":
+        return node[1]
+    if kind == "neg":
+        return -_evaluate(node[1])
+    _, op, left, right = node
+    lv = _evaluate(left)
+    rv = _evaluate(right)
+    if op == "+":
+        return lv + rv
+    if op == "-":
+        return lv - rv
+    if op == "*":
+        return lv * rv
+    if op == "/":
+        return lv / rv
+    raise ValueError("Unknown operator")
+
+
+def _tokens_to_string(tokens: list[tuple[str, str]]) -> str:
+    out: list[str] = []
+    for token_type, token_value in tokens:
+        if token_type == "END":
+            out.append("[END]")
+        else:
+            out.append(f"[{token_type}:{token_value}]")
+    return " ".join(out)
+
+
+def evaluate_file(input_path: str) -> list[dict]:
+    input_file = Path(input_path)
+    output_file = input_file.parent / "output.txt"
+    results: list[dict] = []
+    output_blocks: list[str] = []
+
+    with input_file.open("r", encoding="utf-8") as fh:
+        lines = [line.rstrip("\n") for line in fh]
+
+    for expression in lines:
+        tree_text = "ERROR"
+        tokens_text = "ERROR"
+        result_value: float | str = "ERROR"
+        result_text = "ERROR"
+
+        try:
+            tokens = _tokenize(expression)
+            ast = _parse(tokens)
+            tree_text = _tree_to_string(ast)
+            tokens_text = _tokens_to_string(tokens)
+            value = _evaluate(ast)
+            result_value = value
+            result_text = _format_result(value)
+        except Exception:
+            pass
+
+        results.append(
+            {
+                "input": expression,
+                "tree": tree_text,
+                "tokens": tokens_text,
+                "result": result_value,
+            }
+        )
+        output_blocks.append(
+            f"Input: {expression}\n"
+            f"Tree: {tree_text}\n"
+            f"Tokens: {tokens_text}\n"
+            f"Result: {result_text}"
+        )
+
+    with output_file.open("w", encoding="utf-8") as fh:
+        fh.write("\n\n".join(output_blocks))
+        if output_blocks:
+            fh.write("\n")
+
+    return results
