@@ -4,6 +4,7 @@ from pathlib import Path
 
 
 def _format_number(value: float) -> str:
+    """Format numeric literals for tree output."""
     if value.is_integer():
         return str(int(value))
     text = f"{value:.15g}"
@@ -11,12 +12,14 @@ def _format_number(value: float) -> str:
 
 
 def _format_result(value: float) -> str:
+    """Format final result (int-like without .0, else up to 4 decimals)."""
     if value.is_integer():
         return str(int(value))
     return f"{value:.4f}".rstrip("0").rstrip(".")
 
 
 def _tokenize(expression: str) -> list[tuple[str, str]]:
+    """Convert one expression string into lexer tokens plus END."""
     tokens: list[tuple[str, str]] = []
     i = 0
     n = len(expression)
@@ -65,6 +68,7 @@ def _tokenize(expression: str) -> list[tuple[str, str]]:
 
 
 def _parse(tokens: list[tuple[str, str]]):
+    """Recursive-descent parser that builds a simple AST tuple structure."""
     pos = 0
 
     def peek() -> tuple[str, str]:
@@ -81,6 +85,7 @@ def _parse(tokens: list[tuple[str, str]]):
         return token
 
     def parse_expression():
+        # Lowest precedence: + and -
         node = parse_term()
         while True:
             tk_type, tk_val = peek()
@@ -92,6 +97,7 @@ def _parse(tokens: list[tuple[str, str]]):
                 return node
 
     def parse_term():
+        # Higher precedence: * and /, plus implicit multiplication.
         node = parse_factor()
         while True:
             tk_type, tk_val = peek()
@@ -106,6 +112,7 @@ def _parse(tokens: list[tuple[str, str]]):
                 return node
 
     def parse_factor():
+        # Unary operators and primary expressions.
         tk_type, tk_val = peek()
         if tk_type == "OP" and tk_val == "-":
             consume("OP", "-")
@@ -129,6 +136,7 @@ def _parse(tokens: list[tuple[str, str]]):
 
 
 def _tree_to_string(node) -> str:
+    """Render AST using the required prefix tree format."""
     kind = node[0]
     if kind == "num":
         return _format_number(node[1])
@@ -139,6 +147,7 @@ def _tree_to_string(node) -> str:
 
 
 def _evaluate(node) -> float:
+    """Recursively evaluate AST and return numeric result."""
     kind = node[0]
     if kind == "num":
         return node[1]
@@ -159,6 +168,7 @@ def _evaluate(node) -> float:
 
 
 def _tokens_to_string(tokens: list[tuple[str, str]]) -> str:
+    """Render token list in '[TYPE:value]' format ending with '[END]'."""
     out: list[str] = []
     for token_type, token_value in tokens:
         if token_type == "END":
@@ -169,10 +179,13 @@ def _tokens_to_string(tokens: list[tuple[str, str]]) -> str:
 
 
 def evaluate_file(input_path: str) -> list[dict]:
+    """
+    Evaluate each expression from the input file and return structured results.
+
+    Note: This version does not write output files; it returns data only.
+    """
     input_file = Path(input_path)
-    output_file = input_file.parent / "output.txt"
     results: list[dict] = []
-    output_blocks: list[str] = []
 
     with input_file.open("r", encoding="utf-8") as fh:
         lines = [line.rstrip("\n") for line in fh]
@@ -181,7 +194,6 @@ def evaluate_file(input_path: str) -> list[dict]:
         tree_text = "ERROR"
         tokens_text = "ERROR"
         result_value: float | str = "ERROR"
-        result_text = "ERROR"
 
         try:
             tokens = _tokenize(expression)
@@ -190,7 +202,6 @@ def evaluate_file(input_path: str) -> list[dict]:
             tokens_text = _tokens_to_string(tokens)
             value = _evaluate(ast)
             result_value = value
-            result_text = _format_result(value)
         except Exception:
             pass
 
@@ -202,16 +213,5 @@ def evaluate_file(input_path: str) -> list[dict]:
                 "result": result_value,
             }
         )
-        output_blocks.append(
-            f"Input: {expression}\n"
-            f"Tree: {tree_text}\n"
-            f"Tokens: {tokens_text}\n"
-            f"Result: {result_text}"
-        )
-
-    with output_file.open("w", encoding="utf-8") as fh:
-        fh.write("\n\n".join(output_blocks))
-        if output_blocks:
-            fh.write("\n")
 
     return results
