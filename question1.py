@@ -66,7 +66,7 @@ def encrypt_file(
     with open(rulemap_path, 'wb') as fh:
         fh.write(rule_bytes)
  
-    print(f"[✓] Encrypted  '{input_path}' → '{output_path}'")
+    print(f" Encrypted  '{input_path}' → '{output_path}'")
     print(f"    Rule map saved to '{rulemap_path}'")
     return encrypted
  
@@ -136,7 +136,7 @@ def decrypt_file(
     with open(output_path, 'w', encoding='utf-8') as fh:
         fh.write(decrypted)
  
-    print(f"[✓] Decrypted  '{input_path}' → '{output_path}'")
+    print(f" Decrypted  '{input_path}' → '{output_path}'")
     return decrypted
  
  
@@ -157,19 +157,19 @@ def verify_decryption(
         decrypted = fh.read()
  
     if original == decrypted:
-        print("[✓] Verification PASSED: decrypted text matches the original exactly.")
+        print("Verification PASSED: decrypted text matches the original exactly.")
         return True
  
     for i, (a, b) in enumerate(zip(original, decrypted)):
         if a != b:
             print(
-                f"[✗] Verification FAILED: first difference at position {i} "
+                f" Verification FAILED: first difference at position {i} "
                 f"(original={repr(a)}, decrypted={repr(b)})"
             )
             return False
  
     print(
-        f"[✗] Verification FAILED: lengths differ "
+        f" Verification FAILED: lengths differ "
         f"(original={len(original)}, decrypted={len(decrypted)})"
     )
     return False
@@ -178,7 +178,7 @@ def verify_decryption(
 #  Main 
  
 def main():
-    print("=== HIT137 Assignment 2 — Question 1: Encryption ===\n")
+    print(" HIT137 Assignment 2 — Question 1: Encryption \n")
  
     while True:
         try:
