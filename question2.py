@@ -8,7 +8,7 @@ def main() -> None:
     evaluate_file("sample_input.txt")
 
     # Simple confirmation for command-line runs.
-    print("Evaluation complete. No output file written.")
+    print("Evaluation complete. Output.txt file written.")
 
 
 if __name__ == "__main__":
